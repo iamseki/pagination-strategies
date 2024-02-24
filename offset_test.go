@@ -26,61 +26,63 @@ func TestBooksOffsetHandler(t *testing.T) {
 	server := httptest.NewServer(router)
 	defer server.Close()
 
-	// Test case 1: Retrieve first page (limit 10)
-	url := fmt.Sprintf("%s/books/offset?limit=10", server.URL)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Run("First page (limit 10)", func(t *testing.T) {
+		url := fmt.Sprintf("%s/books/offset?limit=10", server.URL)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal("error while retrieving the first page", err)
-	}
-	defer res.Body.Close()
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal("error while retrieving the first page", err)
+		}
+		defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code 200, got %d", res.StatusCode)
-	}
+		if res.StatusCode != http.StatusOK {
+			t.Errorf("Expected status code 200, got %d", res.StatusCode)
+		}
 
-	var response PagedResponse
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		t.Fatal("error while decode response body", err)
-	}
+		var firstPage PagedResponse
+		if err := json.NewDecoder(res.Body).Decode(&firstPage); err != nil {
+			t.Fatal("error while decode response body", err)
+		}
 
-	// Assert response length (check if 10 books are returned)
-	if len(response.Books) != 10 {
-		t.Errorf("Expected 10 books, got %d", len(response.Books))
-	}
+		// Assert response length (check if 10 books are returned)
+		if len(firstPage.Books) != 10 {
+			t.Errorf("Expected 10 books, got %d", len(firstPage.Books))
+		}
+	})
 
-	// Test case 2: Retrieve second page (limit 10, offset 10)
-	url = fmt.Sprintf("%s/books/offset?limit=10&offset=10", server.URL)
-	req, err = http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Run("Second page (limit 10)", func(t *testing.T) {
+		// Test case 2: Retrieve second page (limit 10, offset 10)
+		url := fmt.Sprintf("%s/books/offset?limit=10&offset=10", server.URL)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	res, err = http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code 200, got %d", res.StatusCode)
-	}
+		if res.StatusCode != http.StatusOK {
+			t.Errorf("Expected status code 200, got %d", res.StatusCode)
+		}
 
-	// Decode resonse body
-	var secondPage PagedResponse
-	if err := json.NewDecoder(res.Body).Decode(&secondPage); err != nil {
-		t.Fatal(err)
-	}
+		// Decode resonse body
+		var secondPage PagedResponse
+		if err := json.NewDecoder(res.Body).Decode(&secondPage); err != nil {
+			t.Fatal(err)
+		}
 
-	// Assert response length (check if 10 books are returned)
-	if len(response.Books) != 10 {
-		t.Errorf("Expected 10 books, got %d", len(response.Books))
-	}
+		// Assert response length (check if 10 books are returned)
+		if len(secondPage.Books) != 10 {
+			t.Errorf("Expected 10 books, got %d", len(secondPage.Books))
+		}
 
-	// Additional test cases can be added to cover different scenarios
-	// (e.g., invalid parameters, empty results, edge cases)
+	})
+
 }
