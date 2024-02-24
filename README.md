@@ -25,18 +25,18 @@ This project demonstrates various pagination strategies using a sample library d
 ## Testing :cop:
 
 - `go test`
-- `go test -bench . -benchmem` (the performance difference were more notable in my machine on pagination with >= 10k rows)
+- `go test -bench . -benchmem` (the performance difference were more notable in my machine on pagination with >= 10k rows, limiting resource for postgresql to 0.5 CPUs and 512MB RAM)
   ```shell
   goos: linux
   goarch: amd64
   pkg: pagination-strategies
   cpu: AMD Ryzen 5 5500U with Radeon Graphics         
   
-  BenchmarkKeysetForwardScan-12           1000000000               0.1313 ns/op
-  BenchmarkOffsetScan-12                  1000000000               0.2836 ns/op
+  BenchmarkKeysetForwardScan-12           1000000000               0.1214 ns/op          0 B/op          0 allocs/op
+  BenchmarkOffsetScan-12                  1000000000               0.3223 ns/op          0 B/op          0 allocs/op
   
   PASS
-  ok      pagination-strategies   6.095s
+  ok      pagination-strategies   7.549s
   ```
 
 #### How to read benchmark results
