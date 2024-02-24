@@ -10,8 +10,23 @@ This project demonstrates various pagination strategies using a sample library d
 
 - `go test`
 
-# WIP
+## Running :scroll:
 
+- `go run main.go keyset.go offset.go`
+- Available pagination approaches: _offset_ || _keyset_
+  ```txt
+  ------== OFFSET ==------ 
+  http://localhost:8080/books/offset?limit=10 // OFFSET 
+  http://localhost:8080/books/offset?offset=10&limit=10&limit=10 // OFFSET NEXT  
+  http://localhost:8080/books/offset?offset=0&limit=10&limit=10 // OFFSET PREVIOUS
+
+  ------== KEYSET ==------
+  http://localhost:8080/books/keyset?limit=10 // KEYSET
+  http://localhost:8080/books/keyset?limit=10&nextPageToken=MTA%3D // KEYSET NEXT
+  http://localhost:8080/books/keyset?limit=10&previousPageToken=MTE%3D // KEYSET PREVIOUS
+  ```
+
+# WIP
 
 There are several strategies for implementing pagination in PostgreSQL, each with its own advantages and limitations. Here are the main approaches:
 
@@ -21,17 +36,17 @@ This is the simplest method, where you specify an offset value (number of rows t
 Advantages: Easy to implement and understand, efficient for small datasets.
 Disadvantages: Performance degrades for large datasets as the database needs to scan through irrelevant rows, can lead to gaps or duplicates with concurrent modifications.
 
-3. Keyset Pagination:
+2. Keyset Pagination:
 
 This method leverages an ordering column and specific values within that column to identify the boundaries of each page.
 Advantages: Efficient for sorted datasets, avoids gaps and duplicates with concurrent modifications.
 Disadvantages: Requires an appropriate ordering column and might not be suitable for all scenarios.
-4. Window Functions:
+3. Window Functions:
 
 This approach utilizes window functions like ROW_NUMBER() or NTILE() to assign unique identifiers or partition data into pages within the query itself.
 Advantages: Flexible and efficient for various scenarios, can be combined with other techniques.
 Disadvantages: Might require more complex SQL code compared to simpler methods.
-5. Third-party Libraries:
+4. Third-party Libraries:
 
 Several open-source libraries and frameworks offer pagination functionalities specifically designed for PostgreSQL.
 Advantages: Can provide additional features and abstractions, simplify implementation.
