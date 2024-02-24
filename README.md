@@ -10,7 +10,7 @@ This project demonstrates various pagination strategies using a sample library d
 ## Testing :cop:
 
 - `go test`
-- `go test -bench=.` (the performance difference were more notable in my machine on pagination with >= 10k rows)
+- `go test -bench . -benchmem` (the performance difference were more notable in my machine on pagination with >= 10k rows)
   ```shell
   goos: linux
   goarch: amd64
@@ -23,6 +23,9 @@ This project demonstrates various pagination strategies using a sample library d
   PASS
   ok      pagination-strategies   6.095s
   ```
+
+#### How to read benchmark results
+![How to read benchmark results](how_to_read_bench.png)
 
 ## Usage :scroll:
 
