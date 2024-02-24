@@ -7,6 +7,21 @@ This project demonstrates various pagination strategies using a sample library d
 - `docker-compose up -d`
 - `go run main.go keyset.go offset.go`
 
+## Usage :scroll:
+
+- Available pagination approaches: _offset_ || _keyset_
+  ```txt
+  ------== OFFSET ==------ 
+  http://localhost:8080/books/offset?limit=10 // OFFSET 
+  http://localhost:8080/books/offset?offset=10&limit=10&limit=10 // OFFSET NEXT  
+  http://localhost:8080/books/offset?offset=0&limit=10&limit=10 // OFFSET PREVIOUS
+
+  ------== KEYSET ==------
+  http://localhost:8080/books/keyset?limit=10 // KEYSET
+  http://localhost:8080/books/keyset?limit=10&nextPageToken=MTA%3D // KEYSET NEXT
+  http://localhost:8080/books/keyset?limit=10&previousPageToken=MTE%3D // KEYSET PREVIOUS
+  ```
+
 ## Testing :cop:
 
 - `go test`
@@ -26,21 +41,6 @@ This project demonstrates various pagination strategies using a sample library d
 
 #### How to read benchmark results
 ![How to read benchmark results](how_to_read_bench.png)
-
-## Usage :scroll:
-
-- Available pagination approaches: _offset_ || _keyset_
-  ```txt
-  ------== OFFSET ==------ 
-  http://localhost:8080/books/offset?limit=10 // OFFSET 
-  http://localhost:8080/books/offset?offset=10&limit=10&limit=10 // OFFSET NEXT  
-  http://localhost:8080/books/offset?offset=0&limit=10&limit=10 // OFFSET PREVIOUS
-
-  ------== KEYSET ==------
-  http://localhost:8080/books/keyset?limit=10 // KEYSET
-  http://localhost:8080/books/keyset?limit=10&nextPageToken=MTA%3D // KEYSET NEXT
-  http://localhost:8080/books/keyset?limit=10&previousPageToken=MTE%3D // KEYSET PREVIOUS
-  ```
 
 # WIP
 
