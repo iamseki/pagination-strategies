@@ -17,11 +17,16 @@ type Book struct {
 	Genre  string `json:"genre"`
 }
 
-type PagedResponse struct {
+type PagedOffsetResponse struct {
 	Books []Book `json:"books"`
 	Next  string `json:"next"`
 	Prev  string `json:"prev"`
 	Count int    `json:"total"`
+}
+
+type PagedKeysetResponse struct {
+	Books     []Book `json:"books"`
+	NextToken string `json:"nextToken"`
 }
 
 func main() {
@@ -36,6 +41,7 @@ func main() {
 	// Initialize router and register handler
 	router := mux.NewRouter()
 	router.HandleFunc("/books/offset", func(w http.ResponseWriter, r *http.Request) { BooksOffsetHandler(db, w, r) })
+	router.HandleFunc("/books/keyset", func(w http.ResponseWriter, r *http.Request) { BooksKeysetHandler(db, w, r) })
 	// Start server on port 8080 (adjust as needed)
 	fmt.Println("Starting server on port 8080")
 	if err := http.ListenAndServe(":8080", router); err != nil {

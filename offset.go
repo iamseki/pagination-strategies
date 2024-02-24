@@ -58,7 +58,7 @@ func BooksOffsetHandler(db *sqlx.DB, w http.ResponseWriter, r *http.Request) {
 		prev = prevURL
 	}
 
-	res := PagedResponse{
+	res := PagedOffsetResponse{
 		Books: books,
 		Next:  next,
 		Prev:  prev,

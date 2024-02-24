@@ -6,6 +6,10 @@ This project demonstrates various pagination strategies using a sample library d
 
 - `docker-compose up -d`
 
+## Testing :cop:
+
+- `go test`
+
 # WIP
 
 
@@ -16,11 +20,7 @@ There are several strategies for implementing pagination in PostgreSQL, each wit
 This is the simplest method, where you specify an offset value (number of rows to skip) and a limit (number of rows to retrieve) in your query.
 Advantages: Easy to implement and understand, efficient for small datasets.
 Disadvantages: Performance degrades for large datasets as the database needs to scan through irrelevant rows, can lead to gaps or duplicates with concurrent modifications.
-2. Cursor-based Pagination:
 
-This method utilizes server-side cursors to navigate through the data. You establish a cursor, fetch a specific number of rows, and then iterate through subsequent pages using the cursor.
-Advantages: More efficient for large datasets compared to offset-based pagination, avoids gaps and duplicates with concurrent modifications.
-Disadvantages: Less commonly used and requires more complex implementation compared to offset-based approach.
 3. Keyset Pagination:
 
 This method leverages an ordering column and specific values within that column to identify the boundaries of each page.

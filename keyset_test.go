@@ -11,7 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestBooksOffsetHandler(t *testing.T) {
+func TestBooksKeysetHandler(t *testing.T) {
 	// Connect to PostgreSQL database using sqlx
 	db, err := sqlx.Connect("pgx", "postgres://test:test@localhost:5432/library?sslmode=disable")
 	if err != nil {
@@ -22,12 +22,12 @@ func TestBooksOffsetHandler(t *testing.T) {
 
 	// Start a server in-memory
 	router := mux.NewRouter()
-	router.HandleFunc("/books/offset", func(w http.ResponseWriter, r *http.Request) { BooksOffsetHandler(db, w, r) })
+	router.HandleFunc("/books/keyset", func(w http.ResponseWriter, r *http.Request) { BooksKeysetHandler(db, w, r) })
 	server := httptest.NewServer(router)
 	defer server.Close()
 
-	t.Run("First page (limit 10)", func(t *testing.T) {
-		url := fmt.Sprintf("%s/books/offset?limit=10", server.URL)
+	t.Run("Retrieve first two pages with limit 10", func(t *testing.T) {
+		url := fmt.Sprintf("%s/books/keyset?limit=10", server.URL)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			t.Fatal(err)
@@ -43,7 +43,7 @@ func TestBooksOffsetHandler(t *testing.T) {
 			t.Errorf("Expected status code 200, got %d", res.StatusCode)
 		}
 
-		var firstPage PagedOffsetResponse
+		var firstPage PagedKeysetResponse
 		if err := json.NewDecoder(res.Body).Decode(&firstPage); err != nil {
 			t.Fatal("error while decode response body", err)
 		}
@@ -52,19 +52,21 @@ func TestBooksOffsetHandler(t *testing.T) {
 		if len(firstPage.Books) != 10 {
 			t.Errorf("Expected 10 books, got %d", len(firstPage.Books))
 		}
-	})
 
-	t.Run("Second page (limit 10)", func(t *testing.T) {
-		// Test case 2: Retrieve second page (limit 10, offset 10)
-		url := fmt.Sprintf("%s/books/offset?limit=10&offset=10", server.URL)
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if firstPage.Books[len(firstPage.Books)-1].ID != 10 {
+			t.Errorf("Expected last book from first page to be ID = 10, got %d", firstPage.Books[len(firstPage.Books)-1].ID)
+		}
+
+		// Second Page
+		url = fmt.Sprintf("%s/books/keyset?limit=10&nextToken=%s", server.URL, firstPage.NextToken)
+		req, err = http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		res, err := http.DefaultClient.Do(req)
+		res, err = http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal("error while retrieving the first page", err)
 		}
 		defer res.Body.Close()
 
@@ -72,17 +74,21 @@ func TestBooksOffsetHandler(t *testing.T) {
 			t.Errorf("Expected status code 200, got %d", res.StatusCode)
 		}
 
-		// Decode resonse body
-		var secondPage PagedOffsetResponse
-		if err := json.NewDecoder(res.Body).Decode(&secondPage); err != nil {
-			t.Fatal(err)
+		var secondPage PagedKeysetResponse
+		if err = json.NewDecoder(res.Body).Decode(&secondPage); err != nil {
+			t.Fatal("error while decode response body", err)
 		}
 
-		// Assert response length (check if 10 books are returned)
 		if len(secondPage.Books) != 10 {
 			t.Errorf("Expected 10 books, got %d", len(secondPage.Books))
 		}
 
-	})
+		if secondPage.Books[0].ID != 11 {
+			t.Errorf("Expected first book from second page to be ID = 11, got %d", secondPage.Books[0].ID)
+		}
 
+		if secondPage.Books[len(secondPage.Books)-1].ID != 20 {
+			t.Errorf("Expected last book from second page to be ID = 20, got %d", secondPage.Books[len(secondPage.Books)-1].ID)
+		}
+	})
 }
