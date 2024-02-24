@@ -17,6 +17,13 @@ type Book struct {
 	Genre  string `json:"genre"`
 }
 
+type PagedResponse struct {
+	Books []Book `json:"books"`
+	Next  string `json:"next"`
+	Prev  string `json:"prev"`
+	Count int    `json:"total"`
+}
+
 func main() {
 	// Connect to PostgreSQL database using sqlx
 	db, err := sqlx.Connect("pgx", "postgres://test:test@localhost:5432/library?sslmode=disable")
