@@ -5,7 +5,12 @@ This project demonstrates various pagination strategies using a sample library d
 ## Setup :wrench:
 
 - `docker-compose up -d`
-- `go run main.go keyset.go offset.go` (the performance difference were more notable in my machine on pagination with >= 10k rows)
+- `go run main.go keyset.go offset.go`
+
+## Testing :cop:
+
+- `go test`
+- `go test -bench=.` (the performance difference were more notable in my machine on pagination with >= 10k rows)
   ```shell
   goos: linux
   goarch: amd64
@@ -18,11 +23,6 @@ This project demonstrates various pagination strategies using a sample library d
   PASS
   ok      pagination-strategies   6.095s
   ```
-
-## Testing :cop:
-
-- `go test`
-- `go test -bench=.`
 
 ## Usage :scroll:
 
