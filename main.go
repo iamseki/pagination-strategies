@@ -25,8 +25,9 @@ type PagedOffsetResponse struct {
 }
 
 type PagedKeysetResponse struct {
-	Books     []Book `json:"books"`
-	NextToken string `json:"nextToken"`
+	Books         []Book `json:"books"`
+	NextToken     string `json:"nextToken"`
+	PreviousToken string `json:"previousToken"`
 }
 
 func main() {
