@@ -11,11 +11,18 @@ import (
 
 func BooksOffsetHandler(db *sqlx.DB, w http.ResponseWriter, r *http.Request) {
 	// Extract offset and limit parameters from request query (adjust as needed)
-	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "Invalid offset parameter")
-		return
+	offsetStr := r.URL.Query().Get("offset")
+	var offset int
+	if offsetStr == "" {
+		offset = 0
+	} else {
+		var err error
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Invalid offset parameter")
+			return
+		}
 	}
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
