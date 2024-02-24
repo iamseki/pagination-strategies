@@ -5,14 +5,14 @@ This project demonstrates various pagination strategies using a sample library d
 ## Setup :wrench:
 
 - `docker-compose up -d`
+- `go run main.go keyset.go offset.go`
 
 ## Testing :cop:
 
 - `go test`
 
-## Running :scroll:
+## Usage :scroll:
 
-- `go run main.go keyset.go offset.go`
 - Available pagination approaches: _offset_ || _keyset_
   ```txt
   ------== OFFSET ==------ 
@@ -41,11 +41,13 @@ Disadvantages: Performance degrades for large datasets as the database needs to 
 This method leverages an ordering column and specific values within that column to identify the boundaries of each page.
 Advantages: Efficient for sorted datasets, avoids gaps and duplicates with concurrent modifications.
 Disadvantages: Requires an appropriate ordering column and might not be suitable for all scenarios.
+
 3. Window Functions:
 
 This approach utilizes window functions like ROW_NUMBER() or NTILE() to assign unique identifiers or partition data into pages within the query itself.
 Advantages: Flexible and efficient for various scenarios, can be combined with other techniques.
 Disadvantages: Might require more complex SQL code compared to simpler methods.
+
 4. Third-party Libraries:
 
 Several open-source libraries and frameworks offer pagination functionalities specifically designed for PostgreSQL.
