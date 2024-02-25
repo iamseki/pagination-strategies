@@ -32,11 +32,11 @@ This project demonstrates various pagination strategies using a sample library d
   pkg: pagination-strategies
   cpu: AMD Ryzen 5 5500U with Radeon Graphics         
   
-  BenchmarkKeysetForwardScan-12           1000000000               0.1214 ns/op          0 B/op          0 allocs/op
-  BenchmarkOffsetScan-12                  1000000000               0.3223 ns/op          0 B/op          0 allocs/op
+  BenchmarkKeysetForwardScan-12                  9         127075392 ns/op         4605761 B/op     123629 allocs/op
+  BenchmarkOffsetScan-12                         4         264581590 ns/op         4613532 B/op     124027 allocs/op
   
   PASS
-  ok      pagination-strategies   7.549s
+  ok      pagination-strategies   4.441s
   ```
 
 #### How to read benchmark results
