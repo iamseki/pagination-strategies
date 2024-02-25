@@ -11,9 +11,9 @@ This project demonstrates various pagination strategies using a sample library d
 
 - Available pagination approaches: _offset_ || _keyset_
   ```txt
-  ------== OFFSET ==------ 
-  http://localhost:8080/books/offset?limit=10 // OFFSET 
-  http://localhost:8080/books/offset?offset=10&limit=10&limit=10 // OFFSET NEXT  
+  ------== OFFSET ==------
+  http://localhost:8080/books/offset?limit=10 // OFFSET
+  http://localhost:8080/books/offset?offset=10&limit=10&limit=10 // OFFSET NEXT
   http://localhost:8080/books/offset?offset=0&limit=10&limit=10 // OFFSET PREVIOUS
 
   ------== KEYSET ==------
@@ -24,13 +24,15 @@ This project demonstrates various pagination strategies using a sample library d
 
 ## Testing :cop:
 
+> There are only integration tests, so the database must be up and running before running the tests.
+
 - `go test`
 - `go test -bench . -benchmem -benchtime=10s` (the performance difference were more notable in my machine on pagination with >= 10k rows, limiting resource for postgresql to 0.5 CPUs and 512MB RAM)
   ```shell
   goos: linux
   goarch: amd64
   pkg: pagination-strategies
-  cpu: AMD Ryzen 5 5500U with Radeon Graphics         
+  cpu: AMD Ryzen 5 5500U with Radeon Graphics
   
   BenchmarkKeysetForwardScan-12                 85         123583760 ns/op         4601926 B/op     123598 allocs/op
   BenchmarkOffsetScan-12                        43         263741289 ns/op         4604369 B/op     123955 allocs/op
