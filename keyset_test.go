@@ -23,6 +23,27 @@ func TestDecodeToken(t *testing.T) {
 	}
 }
 
+func keySetRequest(serverUrl string, limit int, pageToken string) (PagedKeysetResponse, error) {
+	url := fmt.Sprintf("%s/books/keyset?limit=%d&pageToken=%s", serverUrl, limit, pageToken)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return PagedKeysetResponse{}, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return PagedKeysetResponse{}, err
+	}
+	defer res.Body.Close()
+
+	var data PagedKeysetResponse
+	if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
+		return PagedKeysetResponse{}, err
+	}
+
+	return data, err
+}
+
 func TestBooksKeysetHandler(t *testing.T) {
 	// Connect to PostgreSQL database using sqlx
 	db, err := sqlx.Connect("pgx", "postgres://test:test@localhost:5432/library?sslmode=disable")
@@ -40,75 +61,24 @@ func TestBooksKeysetHandler(t *testing.T) {
 
 	t.Run("Move three pages forward and then back one (nextPageToken + lastPageToken)", func(t *testing.T) {
 		{
-			url := fmt.Sprintf("%s/books/keyset?limit=10", server.URL)
-			req, err := http.NewRequest(http.MethodGet, url, nil)
+			firstPage, err := keySetRequest(server.URL, 10, "")
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("retrieve firstPage error: %v", err)
 			}
 
-			res, err := http.DefaultClient.Do(req)
+			secondPage, err := keySetRequest(server.URL, 10, firstPage.NextToken)
 			if err != nil {
-				t.Fatal("error while retrieving the first page", err)
-			}
-			defer res.Body.Close()
-
-			var firstPage PagedKeysetResponse
-			if err := json.NewDecoder(res.Body).Decode(&firstPage); err != nil {
-				t.Fatal("error while decode response body", err)
+				t.Fatalf("retrieve secondPage error: %v", err)
 			}
 
-			// Second Page
-			url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, firstPage.NextToken)
-			req, err = http.NewRequest(http.MethodGet, url, nil)
+			thirdPage, err := keySetRequest(server.URL, 10, secondPage.NextToken)
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("retrieve thirdPage error: %v", err)
 			}
 
-			res, err = http.DefaultClient.Do(req)
+			previousPage, err := keySetRequest(server.URL, 10, thirdPage.PreviousToken)
 			if err != nil {
-				t.Fatal("error while retrieving the first page", err)
-			}
-			defer res.Body.Close()
-
-			var secondPage PagedKeysetResponse
-			if err = json.NewDecoder(res.Body).Decode(&secondPage); err != nil {
-				t.Fatal("error while decode response body", err)
-			}
-
-			// Third page
-			url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, secondPage.NextToken)
-			req, err = http.NewRequest(http.MethodGet, url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			res, err = http.DefaultClient.Do(req)
-			if err != nil {
-				t.Fatal("error while retrieving the first page", err)
-			}
-			defer res.Body.Close()
-
-			var thirdPage PagedKeysetResponse
-			if err = json.NewDecoder(res.Body).Decode(&thirdPage); err != nil {
-				t.Fatal("error while decode response body", err)
-			}
-
-			// Backward
-			url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, thirdPage.PreviousToken)
-			req, err = http.NewRequest(http.MethodGet, url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			res, err = http.DefaultClient.Do(req)
-			if err != nil {
-				t.Fatal("error while retrieving the first page", err)
-			}
-			defer res.Body.Close()
-
-			var previousPage PagedKeysetResponse
-			if err = json.NewDecoder(res.Body).Decode(&previousPage); err != nil {
-				t.Fatal("error while decode response body", err)
+				t.Fatalf("retrieve previousPage error: %v", err)
 			}
 
 			if len(previousPage.Books) != 10 {
@@ -126,25 +96,9 @@ func TestBooksKeysetHandler(t *testing.T) {
 	})
 
 	t.Run("Retrieve first two pages with limit 10 scan forward (nextPageToken only)", func(t *testing.T) {
-		url := fmt.Sprintf("%s/books/keyset?limit=10", server.URL)
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		firstPage, err := keySetRequest(server.URL, 10, "")
 		if err != nil {
-			t.Fatal(err)
-		}
-
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatal("error while retrieving the first page", err)
-		}
-		defer res.Body.Close()
-
-		if res.StatusCode != http.StatusOK {
-			t.Errorf("Expected status code 200, got %d", res.StatusCode)
-		}
-
-		var firstPage PagedKeysetResponse
-		if err := json.NewDecoder(res.Body).Decode(&firstPage); err != nil {
-			t.Fatal("error while decode response body", err)
+			t.Fatalf("retrieve firstPage error: %v", err)
 		}
 
 		// Assert response length (check if 10 books are returned)
@@ -157,25 +111,9 @@ func TestBooksKeysetHandler(t *testing.T) {
 		}
 
 		// Second Page
-		url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, firstPage.NextToken)
-		req, err = http.NewRequest(http.MethodGet, url, nil)
+		secondPage, err := keySetRequest(server.URL, 10, firstPage.NextToken)
 		if err != nil {
-			t.Fatal(err)
-		}
-
-		res, err = http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatal("error while retrieving the first page", err)
-		}
-		defer res.Body.Close()
-
-		if res.StatusCode != http.StatusOK {
-			t.Errorf("Expected status code 200, got %d", res.StatusCode)
-		}
-
-		var secondPage PagedKeysetResponse
-		if err = json.NewDecoder(res.Body).Decode(&secondPage); err != nil {
-			t.Fatal("error while decode response body", err)
+			t.Fatalf("retrieve firstPage error: %v", err)
 		}
 
 		if len(secondPage.Books) != 10 {
