@@ -5,76 +5,82 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
 
-func BooksKeysetHandler(db *sqlx.DB, w http.ResponseWriter, r *http.Request) {
-	// for now the token it's the id itself
-	nextPageToken := r.URL.Query().Get("nextPageToken")
-	previousPageToken := r.URL.Query().Get("previousPageToken")
-	book_id_next_page := 0
-	book_id_previous_page := 0
+type Direction string
 
-	if nextPageToken != "" {
-		decoded, err := base64.StdEncoding.DecodeString(nextPageToken)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Fail to decode nextKeysetToken")
-			return
-		}
-		book_id_next_page, err = strconv.Atoi(string(decoded))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "Invalid nextKeysetToken")
-			return
-		}
-	} else if previousPageToken != "" {
-		decoded, err := base64.StdEncoding.DecodeString(previousPageToken)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Fail to decode nextKeysetToken")
-			return
-		}
-		book_id_previous_page, err = strconv.Atoi(string(decoded))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "Invalid nextKeysetToken")
-			return
-		}
+const (
+	Forward  Direction = "forward"
+	Backward Direction = "backward"
+)
+
+// Decodes a token string using base64 extracting its id and Direction
+func decodeToken(token string) (int, Direction) {
+	decoded, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		log.Fatalf("error decodeToken: %v", err)
 	}
 
+	values := strings.Split(string(decoded), ",")
+	idStr, direction := values[0], values[1]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		log.Fatalf("error decodeToken convert id to int: %v", err)
+	}
+
+	return id, Direction(direction)
+}
+
+func encodeToken(id int, d Direction) string {
+	token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%d,%s", id, d)))
+	return token
+}
+
+func BooksKeysetHandler(db *sqlx.DB, w http.ResponseWriter, r *http.Request) {
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "Invalid limit parameter")
 		return
 	}
+	// default to first page with direction forward
+	last_page_id := 0
+	direction := Forward
+	pageToken := r.URL.Query().Get("pageToken")
 
-	var books []Book
+	if pageToken != "" {
+		last_page_id, direction = decodeToken(pageToken)
+	}
+
 	var nextToken, previousToken string
+	var books []Book
 
-	if previousPageToken != "" {
-		books, err = retriveBooksKeysetBackward(db, limit, book_id_previous_page)
+	switch direction {
+	case Backward:
+		books, err = retriveBooksKeysetBackward(db, limit, last_page_id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error on retriveBooksKeyset: %v", err)
 			return
 		}
+		previousToken = encodeToken(books[len(books)-1].ID, Backward)
+		nextToken = encodeToken(books[0].ID, Forward)
 
-		previousToken = base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(books[len(books)-1].ID)))
-		nextToken = base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(books[0].ID)))
-	} else {
-		books, err = retriveBooksKeysetForward(db, limit, book_id_next_page)
+	case Forward:
+		books, err = retriveBooksKeysetForward(db, limit, last_page_id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error on retriveBooksKeyset: %v", err)
 			return
 		}
-		nextToken = base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(books[len(books)-1].ID)))
-		previousToken = base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(books[0].ID)))
+		nextToken = encodeToken(books[len(books)-1].ID, Forward)
+		previousToken = encodeToken(books[0].ID, Backward)
 	}
 
 	res := PagedKeysetResponse{

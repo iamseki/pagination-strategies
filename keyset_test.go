@@ -11,6 +11,18 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func TestDecodeToken(t *testing.T) {
+	token := encodeToken(17, Backward)
+	id, direction := decodeToken(token)
+	if id != 17 {
+		t.Errorf("expecet id to be 17, got: %v", id)
+	}
+
+	if direction != Backward {
+		t.Errorf("expect direction to be Backward, got: %v", direction)
+	}
+}
+
 func TestBooksKeysetHandler(t *testing.T) {
 	// Connect to PostgreSQL database using sqlx
 	db, err := sqlx.Connect("pgx", "postgres://test:test@localhost:5432/library?sslmode=disable")
@@ -46,7 +58,7 @@ func TestBooksKeysetHandler(t *testing.T) {
 			}
 
 			// Second Page
-			url = fmt.Sprintf("%s/books/keyset?limit=10&nextPageToken=%s", server.URL, firstPage.NextToken)
+			url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, firstPage.NextToken)
 			req, err = http.NewRequest(http.MethodGet, url, nil)
 			if err != nil {
 				t.Fatal(err)
@@ -64,7 +76,7 @@ func TestBooksKeysetHandler(t *testing.T) {
 			}
 
 			// Third page
-			url = fmt.Sprintf("%s/books/keyset?limit=10&nextPageToken=%s", server.URL, secondPage.NextToken)
+			url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, secondPage.NextToken)
 			req, err = http.NewRequest(http.MethodGet, url, nil)
 			if err != nil {
 				t.Fatal(err)
@@ -82,7 +94,7 @@ func TestBooksKeysetHandler(t *testing.T) {
 			}
 
 			// Backward
-			url = fmt.Sprintf("%s/books/keyset?limit=10&previousPageToken=%s", server.URL, thirdPage.PreviousToken)
+			url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, thirdPage.PreviousToken)
 			req, err = http.NewRequest(http.MethodGet, url, nil)
 			if err != nil {
 				t.Fatal(err)
@@ -145,7 +157,7 @@ func TestBooksKeysetHandler(t *testing.T) {
 		}
 
 		// Second Page
-		url = fmt.Sprintf("%s/books/keyset?limit=10&nextPageToken=%s", server.URL, firstPage.NextToken)
+		url = fmt.Sprintf("%s/books/keyset?limit=10&pageToken=%s", server.URL, firstPage.NextToken)
 		req, err = http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			t.Fatal(err)
