@@ -18,8 +18,8 @@ This project demonstrates various pagination strategies using a sample library d
 
   ------== KEYSET ==------
   http://localhost:8080/books/keyset?limit=10 // KEYSET
-  http://localhost:8080/books/keyset?limit=10&nextPageToken=MTA%3D // KEYSET NEXT
-  http://localhost:8080/books/keyset?limit=10&previousPageToken=MTE%3D // KEYSET PREVIOUS
+  http://localhost:8080/books/keyset?limit=10&pageToken=MTAsZm9yd2FyZA%3D%3D // KEYSET NEXT
+  http://localhost:8080/books/keyset?limit=10&pageToken=MTEsYmFja3dhcmQ= // KEYSET PREVIOUS
   ```
 
 ## Testing :cop:
