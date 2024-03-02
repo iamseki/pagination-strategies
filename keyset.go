@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -63,24 +62,39 @@ func BooksKeysetHandler(db *sqlx.DB, w http.ResponseWriter, r *http.Request) {
 
 	switch direction {
 	case Backward:
-		books, err = retriveBooksKeysetBackward(db, limit, last_page_id)
+		books, err = retriveBooksKeysetBackward(db, limit+1, last_page_id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error on retriveBooksKeyset: %v", err)
 			return
 		}
-		previousToken = encodeToken(books[len(books)-1].ID, Backward)
+
+		hasMorePages := len(books) > limit
+		if hasMorePages {
+			// create a new slice with all elements except the LAST ONE
+			books = books[:len(books)-1]
+			previousToken = encodeToken(books[len(books)-1].ID, Backward)
+		}
 		nextToken = encodeToken(books[0].ID, Forward)
 
 	case Forward:
-		books, err = retriveBooksKeysetForward(db, limit, last_page_id)
+		books, err = retriveBooksKeysetForward(db, limit+1, last_page_id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error on retriveBooksKeyset: %v", err)
 			return
 		}
-		nextToken = encodeToken(books[len(books)-1].ID, Forward)
-		previousToken = encodeToken(books[0].ID, Backward)
+
+		hasMorePages := len(books) > limit
+		if hasMorePages {
+			// create a new slice with all elements except the LAST ONE
+			books = books[:len(books)-1]
+			nextToken = encodeToken(books[len(books)-1].ID, Forward)
+		}
+		// in first page scenario previousToken must be nil
+		if pageToken != "" {
+			previousToken = encodeToken(books[0].ID, Backward)
+		}
 	}
 
 	res := PagedKeysetResponse{
@@ -95,12 +109,6 @@ func BooksKeysetHandler(db *sqlx.DB, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Error encoding books to JSON: %v", err)
 		return
 	}
-}
-
-// HashKeyset securely hashes a string using SHA-256
-func hashKeyset(keyset string) string {
-	hash := sha256.Sum256([]byte(keyset))
-	return string(hash[:])
 }
 
 func retriveBooksKeysetForward(db *sqlx.DB, limit int, id int) ([]Book, error) {

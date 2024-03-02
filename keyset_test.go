@@ -129,4 +129,52 @@ func TestBooksKeysetHandler(t *testing.T) {
 		}
 	})
 
+	t.Run("Scan the entire dataset forward and then backward to the beginning", func(t *testing.T) {
+		var data PagedKeysetResponse
+		var nextPageToken string
+		var previousPageToken string
+		totalDatasetCount := 1000000
+		limit := 1000
+		dataCount := 0
+
+		data, err := keySetRequest(server.URL, limit, nextPageToken)
+		if err != nil {
+			t.Fatalf("retrieve firstPage error: %v", err)
+		}
+
+		dataCount += len(data.Books)
+		nextPageToken = data.NextToken
+		previousPageToken = data.PreviousToken
+		t.Logf("data retrieved: %d, nextToken: %s, previousToken: %s", dataCount, nextPageToken, previousPageToken)
+
+		for nextPageToken != "" {
+			data, err = keySetRequest(server.URL, limit, nextPageToken)
+			if err != nil {
+				t.Fatalf("retrieve nextPage error: %v", err)
+			}
+
+			nextPageToken = data.NextToken
+			previousPageToken = data.PreviousToken
+			dataCount += len(data.Books)
+			t.Logf("data retrieved on forward direction: %d, nextToken: %s, previousToken: %s", dataCount, nextPageToken, previousPageToken)
+			if dataCount > totalDatasetCount {
+				t.Errorf("expected dataCount to be %d but got %d", totalDatasetCount, dataCount)
+			}
+		}
+
+		for previousPageToken != "" {
+			data, err = keySetRequest(server.URL, limit, previousPageToken)
+			if err != nil {
+				t.Fatalf("retrieve nextPage error: %v", err)
+			}
+
+			nextPageToken = data.NextToken
+			previousPageToken = data.PreviousToken
+			dataCount -= len(data.Books)
+			t.Logf("going in backward direction: %d, nextToken: %s, previousToken: %s", dataCount, nextPageToken, previousPageToken)
+			if dataCount < 0 {
+				t.Errorf("expected dataCount to be %d but got %d", totalDatasetCount, dataCount)
+			}
+		}
+	})
 }
