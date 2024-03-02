@@ -22,7 +22,7 @@ This project demonstrates various pagination strategies using a sample library d
   http://localhost:8080/books/keyset?limit=10&pageToken=MTEsYmFja3dhcmQ= // KEYSET PREVIOUS
   ```
 
-## Testing :cop:
+## Testing & Benchmark :cop:
 
 > There are only integration tests, so the database must be up and running before running the tests.
 
@@ -44,7 +44,7 @@ This project demonstrates various pagination strategies using a sample library d
 #### How to read benchmark results
 ![How to read benchmark results](how_to_read_bench.png)
 
-# WIP
+# Approaches
 
 There are several strategies for implementing pagination in PostgreSQL, each with its own advantages and limitations. Here are the main approaches:
 
@@ -71,6 +71,8 @@ Disadvantages: Might require more complex SQL code compared to simpler methods.
 Several open-source libraries and frameworks offer pagination functionalities specifically designed for PostgreSQL.
 Advantages: Can provide additional features and abstractions, simplify implementation.
 Disadvantages: Introduce external dependencies and might require additional learning curve.
+
+---
 
 Choosing the right strategy depends on your specific needs and considerations:
 
